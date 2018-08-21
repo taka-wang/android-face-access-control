@@ -5,20 +5,19 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.util.Log;
-
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
 public class BluetoothSerial {
 
-    private static final String TAG = "Bluetooth";
+    private static final String TAG = "BluetoothSerial";
     private static final UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // SPP
-    private static final int relayDelayMs = 300; // relay on off delay in ms
+    private static final int RELAY_DELAY_MS = 300;          // on off delay of the relay in ms
 
-    private static boolean isConnected = false;
-    private static BluetoothAdapter mAdapter = null;
-    private static BluetoothSocket mSerialSocket = null;
+    private static BluetoothAdapter mAdapter = null;        // bluetooth adapter
+    private static BluetoothSocket mSerialSocket = null;    // bluetooth serial socket
+    private static boolean mIsConnected = false;            // SPP connection flag
 
     /* singleton */
     private BluetoothSerial() { }
@@ -38,13 +37,13 @@ public class BluetoothSerial {
             mSerialSocket.getOutputStream().write(cmd.getBytes());
             return true;
         } catch (IOException e) {
-            Log.d(TAG, "Serial command: " + cmd + " : " + e);
+            Log.d(TAG, "Send command: " + cmd + " error: " + e);
         }
         return false;
     }
 
     /* Check bluetooth device is available or not */
-    public static boolean HasAdapter() {
+    public static boolean IsAvailable() {
         return getAdapter() != null;
     }
 
@@ -61,8 +60,8 @@ public class BluetoothSerial {
     }
 
     /* Check SPP is connect or not */
-    public static boolean isConnected() {
-        return isConnected;
+    public static boolean IsConnected() {
+        return mIsConnected;
     }
 
     /* Connect to remote bluetooth device */
@@ -70,25 +69,24 @@ public class BluetoothSerial {
         Log.d(TAG, "Connect");
 
         try {
-            if (mSerialSocket == null || !isConnected) {
+            if (mSerialSocket == null || !mIsConnected) {
                 BluetoothDevice remoteDevice = getAdapter().getRemoteDevice(address);
                 mSerialSocket = remoteDevice.createInsecureRfcommSocketToServiceRecord(uuid); //create a RFCOMM (SPP) connection
                 BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
                 mSerialSocket.connect(); // start connection
-                isConnected = true;
+                mIsConnected = true;
             }
         } catch (IOException e) {
             Log.e(TAG, "Connect: " + e);
         }
-
-        return isConnected;
+        return mIsConnected;
     }
 
-    /* Disconnect from remote device */
+    /* Disconnect the connected device */
     public static boolean Disconnect() {
         Log.d(TAG, "Disconnect");
-        // set connect flag
-        isConnected = false;
+
+        mIsConnected = false; // set connect flag
 
         if (mSerialSocket != null) {
             try {
@@ -101,7 +99,7 @@ public class BluetoothSerial {
         return false;
     }
 
-    /* Send open door serial command */
+    /* Send 'open door' serial command */
     public static boolean OpenDoor() {
         Log.d(TAG, "Open Door");
 
@@ -114,7 +112,7 @@ public class BluetoothSerial {
                     public void run() {
                         isSuccess[0] = sendCommand("0");
                     }
-                }, relayDelayMs
+                }, RELAY_DELAY_MS
             );
         }
         return isSuccess[0];
