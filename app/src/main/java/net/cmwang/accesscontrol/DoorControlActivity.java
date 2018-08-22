@@ -13,7 +13,8 @@ public class DoorControlActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_door_control);
-        ButterKnife.bind(this);
+
+        ButterKnife.bind(this); // Binds
     }
 
     @OnClick(R.id.button)
