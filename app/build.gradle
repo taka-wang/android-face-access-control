@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     defaultConfig {
-        applicationId "net.cmwang.face.access"
+        applicationId "net.cmwang.accesscontrol"
         minSdkVersion 23
         targetSdkVersion 23
         versionCode 1

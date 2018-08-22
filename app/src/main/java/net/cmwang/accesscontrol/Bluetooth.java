@@ -1,4 +1,4 @@
-package net.cmwang.face.access;
+package net.cmwang.accesscontrol;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
-public class BluetoothSerial {
+public class Bluetooth {
 
-    private static final String TAG = "BluetoothSerial";
+    private static final String TAG = "Bluetooth";
     private static final UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // SPP
     private static final int RELAY_DELAY_MS = 300;          // on off delay of the relay in ms
 
@@ -21,7 +21,7 @@ public class BluetoothSerial {
     private static boolean mIsConnected = false;            // SPP connection flag
 
     /* singleton */
-    private BluetoothSerial() { }
+    private Bluetooth() { }
 
     /* lazy initialization */
     private static BluetoothAdapter getAdapter() {
@@ -53,16 +53,16 @@ public class BluetoothSerial {
         return getAdapter().isEnabled();
     }
 
+    /* Check SPP is connect or not */
+    public static boolean IsSPPConnected() {
+        return mIsConnected;
+    }
+
     /* Get paired bluetooth devices */
     public static Set<BluetoothDevice> GetPairedDevices() {
         Set<BluetoothDevice> pairedSet = getAdapter().getBondedDevices();
         Log.d(TAG, "GetPairedDevices: " + pairedSet);
         return pairedSet;
-    }
-
-    /* Check SPP is connect or not */
-    public static boolean IsConnected() {
-        return mIsConnected;
     }
 
     /* Connect to remote bluetooth device */

@@ -1,4 +1,4 @@
-package net.cmwang.face.access;
+package net.cmwang.accesscontrol;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +18,6 @@ public class DoorControlActivity extends AppCompatActivity {
 
     @OnClick(R.id.button)
     public void onOpenDoor(View view) {
-        BluetoothSerial.OpenDoor();
+        Bluetooth.OpenDoor();
     }
 }
