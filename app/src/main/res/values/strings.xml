@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Face Recognition Access Control</string>
     <string name="action_settings">Settings</string>
+    <string name="default_server_address">192.168.1.1</string>
+    <string name="default_door_number">1</string>
+
     <string name="extra_door_number">door_number</string>
     <string name="extra_server_address">server_address</string>
 
@@ -10,4 +13,6 @@
     <string name="connect_fail">Connection Failed!</string>
     <string name="empty_door_number">Door number can not be empty!</string>
     <string name="empty_server_address">Server address can not be empty!</string>
+    <string name="connect_msg_title">Connecting...</string>
+    <string name="wait_msg">Please wait!</string>
 </resources>
