@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -42,8 +43,10 @@ public class MainActivity extends ActionBarActivity {
     @BindString(R.string.extra_server_address) String EXTRA_SERVER_ADDRESS;
 
     private static final String TAG = "MainActivity";
+    private static final String PREFS_NAME = "preference";
     private static final int PERMISSION_REQUESTS = 1;
     private ArrayAdapter adapter;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,11 @@ public class MainActivity extends ActionBarActivity {
 
         // Binds
         ButterKnife.bind(this);
+
+        // Load preferences
+        prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        doorView.setText(prefs.getString(EXTRA_DOOR_NUMBER, doorView.getText().toString().trim()));
+        serverAddressView.setText(prefs.getString(EXTRA_SERVER_ADDRESS, serverAddressView.getText().toString().trim()));
 
         // check Bluetooth status
         if (!BluetoothSerial.IsAvailable()) {
@@ -108,6 +116,12 @@ public class MainActivity extends ActionBarActivity {
             shortToast(noServerAddressMessage);
             return;
         }
+
+        // save preference
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(EXTRA_DOOR_NUMBER, doorNumberText);
+        editor.putString(EXTRA_SERVER_ADDRESS, serverAddressText);
+        editor.apply();
 
         Log.i(TAG, "MAC: " + macAddressText + " Door: " + doorNumberText + " Server: " + serverAddressText);
 
