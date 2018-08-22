@@ -32,12 +32,12 @@ public class MainActivity extends ActionBarActivity {
     @BindView(R.id.door_number) EditText doorView;
     @BindView(R.id.server_address) EditText serverAddressView;
     @BindView(R.id.devices_list_view) ListView deviceListView;
-    @BindString(R.string.bluetooth_not_available) String noBluetoothMessage;
-    @BindString(R.string.empty_door_number) String noDoorNumberMessage;
-    @BindString(R.string.empty_server_address) String noServerAddressMessage;
-    @BindString(R.string.no_paired_devices) String noPairedDeviceMessage;
-    @BindString(R.string.connect_fail) String connectionFailMessage;
-    @BindString(R.string.connect_msg_title) String connectingTitleMessage;
+    @BindString(R.string.bluetooth_not_available_msg) String noBluetoothMessage;
+    @BindString(R.string.empty_door_number_msg) String noDoorNumberMessage;
+    @BindString(R.string.empty_server_address_msg) String noServerAddressMessage;
+    @BindString(R.string.no_paired_devices_msg) String noPairedDeviceMessage;
+    @BindString(R.string.connection_fail_msg) String connectionFailMessage;
+    @BindString(R.string.connection_title_msg) String connectingTitleMessage;
     @BindString(R.string.wait_msg) String waitMessage;
     @BindString(R.string.extra_door_number) String EXTRA_DOOR_NUMBER;
     @BindString(R.string.extra_server_address) String EXTRA_SERVER_ADDRESS;
