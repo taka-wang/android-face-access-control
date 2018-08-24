@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +25,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
     @BindView(R.id.door_number) EditText doorView;
     @BindView(R.id.server_address) EditText serverAddressView;
     @BindView(R.id.devices_list_view) ListView deviceListView;
@@ -41,7 +41,6 @@ public class MainActivity extends ActionBarActivity {
 
     private static final String TAG = "MainActivity";
     private static final String PREFS_NAME = "preference";
-    private static final int PERMISSION_REQUESTS = 1;
     private ArrayAdapter adapter;
     private SharedPreferences prefs;
     private ToastUtils toast;
@@ -58,6 +57,9 @@ public class MainActivity extends ActionBarActivity {
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         doorView.setText(prefs.getString(EXTRA_DOOR_NUMBER, doorView.getText().toString().trim()));
         serverAddressView.setText(prefs.getString(EXTRA_SERVER_ADDRESS, serverAddressView.getText().toString().trim()));
+
+        // get runtime permissions
+        new PermissionDelegate(this).getPermissions();
 
         // check Bluetooth status
         if (!Bluetooth.IsAvailable()) {

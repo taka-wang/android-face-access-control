@@ -26,11 +26,7 @@ import butterknife.ButterKnife;
 public class LivePreviewActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String TAG = "LivePreviewActivity";
-    private static final int PERMISSION_REQUESTS = 1;
-
     private CameraSource cameraSource = null;
-
-
 
     private CameraSourcePreview preview;
     private GraphicOverlay graphicOverlay;
@@ -44,13 +40,12 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
 
         ButterKnife.bind(this); // Binds
 
-        // check permission
-        if (allPermissionsGranted()) {
-            createCameraSource(isRunningFaceDetection);
-            startCameraSource();
-        } else {
-            getRuntimePermissions();
-        }
+        // get runtime permissions
+        new PermissionDelegate(this).getPermissions();
+
+        // start camera
+        createCameraSource(isRunningFaceDetection);
+        startCameraSource();
     }
 
     @Override
@@ -107,67 +102,6 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
             }
         }
 
-    }
-
-    /** permission ********************************************/
-
-    private String[] getRequiredPermissions() {
-        try {
-            PackageInfo info =
-                    this.getPackageManager()
-                            .getPackageInfo(this.getPackageName(), PackageManager.GET_PERMISSIONS);
-            String[] ps = info.requestedPermissions;
-            if (ps != null && ps.length > 0) {
-                return ps;
-            } else {
-                return new String[0];
-            }
-        } catch (Exception e) {
-            return new String[0];
-        }
-    }
-
-    private boolean allPermissionsGranted() {
-        for (String permission : getRequiredPermissions()) {
-            if (!isPermissionGranted(this, permission)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void getRuntimePermissions() {
-        List<String> allNeededPermissions = new ArrayList<>();
-        for (String permission : getRequiredPermissions()) {
-            if (!isPermissionGranted(this, permission)) {
-                allNeededPermissions.add(permission);
-            }
-        }
-
-        if (!allNeededPermissions.isEmpty()) {
-            ActivityCompat.requestPermissions(
-                    this, allNeededPermissions.toArray(new String[0]), PERMISSION_REQUESTS);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(
-            int requestCode, String[] permissions, int[] grantResults) {
-        Log.i(TAG, "Permission granted!");
-
-        if (allPermissionsGranted()) {
-            createCameraSource(isRunningFaceDetection);
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    private static boolean isPermissionGranted(Context context, String permission) {
-        if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED) {
-            Log.i(TAG, "Permission granted: " + permission);
-            return true;
-        }
-        Log.i(TAG, "Permission NOT granted: " + permission);
-        return false;
     }
 
 }
