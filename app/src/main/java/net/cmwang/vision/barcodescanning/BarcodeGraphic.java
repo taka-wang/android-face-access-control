@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package net.cmwang.mlkit.barcode;
+package net.cmwang.vision.barcodescanning;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -21,7 +21,7 @@ import android.graphics.RectF;
 
 import com.google.firebase.ml.vision.barcode.FirebaseVisionBarcode;
 
-import net.cmwang.mlkit.GraphicOverlay;
+import net.cmwang.vision.GraphicOverlay;
 
 
 /** Graphic instance for rendering Barcode position and content information in an overlay view. */

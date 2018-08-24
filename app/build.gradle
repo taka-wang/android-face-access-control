@@ -9,6 +9,8 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        renderscriptTargetApi 16
+        renderscriptSupportModeEnabled true
     }
     buildTypes {
         release {
@@ -37,6 +39,9 @@ dependencies {
 
     // use camera
     implementation 'io.fotoapparat:fotoapparat:2.3.3'
+
+    // easyrs
+    implementation 'io.github.silvaren:easyrs:0.5.3'
 }
 
 apply plugin: 'com.google.gms.google-services'

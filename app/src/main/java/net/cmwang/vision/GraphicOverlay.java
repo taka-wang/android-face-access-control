@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package net.cmwang.mlkit;
+package net.cmwang.vision;
 
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.View;
-
-import net.cmwang.mlkit.CameraSource;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -44,12 +42,15 @@ import java.util.Set;
  * </ol>
  */
 public class GraphicOverlay extends View {
+    public static final int LENS_FACING_BACK = 0;
+    public static final int LENS_FACING_FRONT = 1;
+
     private final Object lock = new Object();
     private int previewWidth;
     private float widthScaleFactor = 1.0f;
     private int previewHeight;
     private float heightScaleFactor = 1.0f;
-    private int facing = CameraSource.CAMERA_FACING_FRONT;
+    private int facing = LENS_FACING_FRONT;
     private Set<Graphic> graphics = new HashSet<>();
 
     /**
@@ -100,7 +101,7 @@ public class GraphicOverlay extends View {
          * Adjusts the x coordinate from the preview's coordinate system to the view coordinate system.
          */
         public float translateX(float x) {
-            if (overlay.facing == CameraSource.CAMERA_FACING_FRONT) {
+            if (overlay.facing == LENS_FACING_FRONT) {
                 return overlay.getWidth() - scaleX(x);
             } else {
                 return scaleX(x);

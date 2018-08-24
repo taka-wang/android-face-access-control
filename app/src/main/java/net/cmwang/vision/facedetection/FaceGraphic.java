@@ -12,31 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package net.cmwang.mlkit.face;
+package net.cmwang.vision.facedetection;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
-import net.cmwang.mlkit.CameraSource;
-
 import com.google.firebase.ml.vision.common.FirebaseVisionPoint;
 import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 
-import net.cmwang.mlkit.GraphicOverlay;
+import net.cmwang.vision.GraphicOverlay;
 
-
-/**
- * Graphic instance for rendering face position, orientation, and landmarks within an associated
- * graphic overlay view.
- */
 public class FaceGraphic extends GraphicOverlay.Graphic {
     private static final float FACE_POSITION_RADIUS = 10.0f;
     private static final float ID_TEXT_SIZE = 40.0f;
     private static final float ID_Y_OFFSET = 50.0f;
     private static final float ID_X_OFFSET = -50.0f;
     private static final float BOX_STROKE_WIDTH = 5.0f;
+
+    private static final int[] COLOR_CHOICES = {
+            Color.BLUE, Color.CYAN, Color.GREEN, Color.MAGENTA, Color.RED, Color.WHITE, Color.YELLOW
+    };
+    private static int currentColorIndex = 0;
 
     private int facing;
     private final Paint facePositionPaint;
@@ -48,7 +46,8 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
     public FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
 
-        final int selectedColor = Color.CYAN;
+        currentColorIndex = (currentColorIndex + 1) % COLOR_CHOICES.length;
+        final int selectedColor = COLOR_CHOICES[currentColorIndex];
 
         facePositionPaint = new Paint();
         facePositionPaint.setColor(selectedColor);
@@ -91,7 +90,7 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         // Euler angle
         canvas.drawText("y: " + face.getHeadEulerAngleY(), x + ID_X_OFFSET, y + ID_Y_OFFSET, idPaint);
 
-        if (facing == CameraSource.CAMERA_FACING_FRONT) {
+        if (facing == GraphicOverlay.LENS_FACING_FRONT) {
             canvas.drawText(
                     "right eye: " + String.format("%.2f", face.getRightEyeOpenProbability()),
                     x - ID_X_OFFSET,
