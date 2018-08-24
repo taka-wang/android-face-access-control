@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,10 +26,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnItemClick;
+import butterknife.OnTextChanged;
 
 public class MainActivity extends AppCompatActivity {
-    @BindView(R.id.door_number) EditText doorView;
-    @BindView(R.id.server_address) EditText serverAddressView;
+    @BindView(R.id.doorNumberWrapper) TextInputLayout doorNumberWrapper;
+    @BindView(R.id.serverAddressWrapper) TextInputLayout serverAddressWrapper;
     @BindView(R.id.devices_list_view) ListView deviceListView;
     @BindString(R.string.bluetooth_not_available_msg) String noBluetoothMessage;
     @BindString(R.string.empty_door_number_msg) String noDoorNumberMessage;
@@ -55,8 +58,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Load preferences
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        doorView.setText(prefs.getString(EXTRA_DOOR_NUMBER, doorView.getText().toString().trim()));
-        serverAddressView.setText(prefs.getString(EXTRA_SERVER_ADDRESS, serverAddressView.getText().toString().trim()));
+        doorNumberWrapper.getEditText().setText(
+                prefs.getString(EXTRA_DOOR_NUMBER,
+                        doorNumberWrapper.getEditText().getText().toString().trim()));
+        serverAddressWrapper.getEditText().setText(
+                prefs.getString(EXTRA_SERVER_ADDRESS,
+                        serverAddressWrapper.getEditText().getText().toString().trim()));
+
 
         // get runtime permissions
         new PermissionDelegate(this).getPermissions();
@@ -95,6 +103,25 @@ public class MainActivity extends AppCompatActivity {
         deviceListView.setAdapter(adapter);
     }
 
+
+    @OnTextChanged(R.id.door_number)
+    protected void validateDoorNumber(Editable editable) {
+        if (editable.length() == 0) {
+            doorNumberWrapper.setError(noDoorNumberMessage);
+            return;
+        }
+        doorNumberWrapper.setErrorEnabled(false);
+    }
+
+    @OnTextChanged(R.id.server_address)
+    protected void validateServerAddress(Editable editable) {
+        if (editable.length() == 0) {
+            serverAddressWrapper.setError(noServerAddressMessage);
+            return;
+        }
+        serverAddressWrapper.setErrorEnabled(false);
+    }
+
     /* Handle device list item on click event */
     @OnItemClick(R.id.devices_list_view)
     protected void onItemClick(int position) {
@@ -104,18 +131,20 @@ public class MainActivity extends AppCompatActivity {
         String macAddressText = info.substring(info.length() - 17);
 
         // get door number from EditText
-        String doorNumberText = doorView.getText().toString().trim();
+        String doorNumberText = doorNumberWrapper.getEditText().getText().toString().trim();
         if (doorNumberText.matches("")) {
-            toast.shortMSG(noDoorNumberMessage);
+            doorNumberWrapper.setError(noDoorNumberMessage);
             return;
         }
+        doorNumberWrapper.setErrorEnabled(false);
 
         // get server address from EditText
-        String serverAddressText = serverAddressView.getText().toString().trim();
+        String serverAddressText = serverAddressWrapper.getEditText().getText().toString().trim();
         if (serverAddressText.matches("")) {
-            toast.shortMSG(noServerAddressMessage);
+            serverAddressWrapper.setError(noServerAddressMessage);
             return;
         }
+        serverAddressWrapper.setErrorEnabled(false);
 
         // save preference
         SharedPreferences.Editor editor = prefs.edit();

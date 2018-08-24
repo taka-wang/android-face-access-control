@@ -2,6 +2,7 @@
     <string name="app_name">Access Control</string>
     <string name="action_settings">Settings</string>
 
+    <!-- main activity -->
     <string name="extra_door_number">door_number</string>
     <string name="extra_server_address">server_address</string>
 
@@ -13,9 +14,12 @@
     <string name="bluetooth_not_available_msg">Bluetooth device not available!</string>
     <string name="no_paired_devices_msg">No Paired Bluetooth Devices Found.</string>
     <string name="connection_fail_msg">Connection Failed!</string>
-    <string name="empty_door_number_msg">Door number can not be empty!</string>
-    <string name="empty_server_address_msg">Server address can not be empty!</string>
+    <string name="empty_door_number_msg">Door number can not be empty</string>
+    <string name="empty_server_address_msg">Server address can not be empty</string>
     <string name="connection_title_msg">Connecting...</string>
     <string name="wait_msg">Please wait!</string>
+    <string name="hint_door_number">Door Number</string>
+    <string name="hint_server_address">Server Address</string>
+
 
 </resources>
