@@ -16,7 +16,7 @@ import io.fotoapparat.view.CameraView;
 
 public class CameraSource {
     private static final String TAG = "CameraSource";
-    private static final String defaultProcessor = "face";
+    private static  String defaultProcessor = "face";
     private static int cameraFacing = GraphicOverlay.LENS_FACING_FRONT;
 
     private final Object processorLock = new Object();
@@ -83,6 +83,11 @@ public class CameraSource {
             processor.stop();
         }
         fotoapparat.stop();
+    }
+
+    public void setDefaultProcessor(String s) {
+        defaultProcessor = s;
+        setProcessor(defaultProcessor);
     }
 
     public void setProcessor(String model) {

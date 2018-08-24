@@ -27,12 +27,10 @@ import net.cmwang.vision.GraphicOverlay;
 /** Graphic instance for rendering Barcode position and content information in an overlay view. */
 public class BarcodeGraphic extends GraphicOverlay.Graphic {
 
-    private static final int TEXT_COLOR = Color.WHITE;
-    private static final float TEXT_SIZE = 54.0f;
-    private static final float STROKE_WIDTH = 4.0f;
+    private static final int TEXT_COLOR = Color.RED;
+    private static final float STROKE_WIDTH = 10.0f;
 
     private final Paint rectPaint;
-    private final Paint barcodePaint;
     private final FirebaseVisionBarcode barcode;
 
     BarcodeGraphic(GraphicOverlay overlay, FirebaseVisionBarcode barcode) {
@@ -45,9 +43,6 @@ public class BarcodeGraphic extends GraphicOverlay.Graphic {
         rectPaint.setStyle(Paint.Style.STROKE);
         rectPaint.setStrokeWidth(STROKE_WIDTH);
 
-        barcodePaint = new Paint();
-        barcodePaint.setColor(TEXT_COLOR);
-        barcodePaint.setTextSize(TEXT_SIZE);
         // Redraw the overlay, as this graphic has been added.
         postInvalidate();
     }
@@ -70,6 +65,6 @@ public class BarcodeGraphic extends GraphicOverlay.Graphic {
         canvas.drawRect(rect, rectPaint);
 
         // Renders the barcode at the bottom of the box.
-        canvas.drawText(barcode.getRawValue(), rect.left, rect.bottom, barcodePaint);
+        //canvas.drawText(barcode.getRawValue(), rect.left, rect.bottom, barcodePaint);
     }
 }

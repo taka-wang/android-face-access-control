@@ -23,7 +23,7 @@ public class FaceDetectionProcessor extends VisionProcessorBase<List<FirebaseVis
     private static final String TAG = "FaceDetectionProcessor";
     private final FirebaseVisionFaceDetector faceDetector;
 
-    private static final float minFaceSize = 0.15f;
+    private static final float minFaceSize = 0.35f;
 
     // Constraints
     private static double minEyeOpenProbability = 0.80;
@@ -66,7 +66,7 @@ public class FaceDetectionProcessor extends VisionProcessorBase<List<FirebaseVis
     protected void onSuccess(@NonNull List<FirebaseVisionFace> faces,
                              @NonNull VisionFrame frame,
                              @NonNull GraphicOverlay graphicOverlay) {
-        Log.d(TAG, "success");
+        //Log.d(TAG, "success");
         // clear overlay before update
         graphicOverlay.clear();
 

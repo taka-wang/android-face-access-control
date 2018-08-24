@@ -25,20 +25,10 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 import net.cmwang.vision.GraphicOverlay;
 
 public class FaceGraphic extends GraphicOverlay.Graphic {
-    private static final float FACE_POSITION_RADIUS = 10.0f;
-    private static final float ID_TEXT_SIZE = 40.0f;
-    private static final float ID_Y_OFFSET = 50.0f;
-    private static final float ID_X_OFFSET = -50.0f;
-    private static final float BOX_STROKE_WIDTH = 5.0f;
-
-    private static final int[] COLOR_CHOICES = {
-            Color.BLUE, Color.CYAN, Color.GREEN, Color.MAGENTA, Color.RED, Color.WHITE, Color.YELLOW
-    };
-    private static int currentColorIndex = 0;
+    private static final int TEXT_COLOR = Color.RED;
+    private static final float BOX_STROKE_WIDTH = 10.0f;
 
     private int facing;
-    private final Paint facePositionPaint;
-    private final Paint idPaint;
     private final Paint boxPaint;
 
     private volatile FirebaseVisionFace firebaseVisionFace;
@@ -46,18 +36,8 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
     public FaceGraphic(GraphicOverlay overlay) {
         super(overlay);
 
-        currentColorIndex = (currentColorIndex + 1) % COLOR_CHOICES.length;
-        final int selectedColor = COLOR_CHOICES[currentColorIndex];
-
-        facePositionPaint = new Paint();
-        facePositionPaint.setColor(selectedColor);
-
-        idPaint = new Paint();
-        idPaint.setColor(selectedColor);
-        idPaint.setTextSize(ID_TEXT_SIZE);
-
         boxPaint = new Paint();
-        boxPaint.setColor(selectedColor);
+        boxPaint.setColor(TEXT_COLOR);
         boxPaint.setStyle(Paint.Style.STROKE);
         boxPaint.setStrokeWidth(BOX_STROKE_WIDTH);
     }
@@ -80,41 +60,10 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
             return;
         }
 
-        // Draws a circle at the position of the detected face, with the face's track id below.
+        // Draws a bounding box around the face.
         float x = translateX(face.getBoundingBox().centerX());
         float y = translateY(face.getBoundingBox().centerY());
 
-
-        canvas.drawCircle(x, y, FACE_POSITION_RADIUS, facePositionPaint);
-
-        // Euler angle
-        canvas.drawText("y: " + face.getHeadEulerAngleY(), x + ID_X_OFFSET, y + ID_Y_OFFSET, idPaint);
-
-        if (facing == GraphicOverlay.LENS_FACING_FRONT) {
-            canvas.drawText(
-                    "right eye: " + String.format("%.2f", face.getRightEyeOpenProbability()),
-                    x - ID_X_OFFSET,
-                    y,
-                    idPaint);
-            canvas.drawText(
-                    "left eye: " + String.format("%.2f", face.getLeftEyeOpenProbability()),
-                    x + ID_X_OFFSET * 6,
-                    y,
-                    idPaint);
-        } else {
-            canvas.drawText(
-                    "left eye: " + String.format("%.2f", face.getLeftEyeOpenProbability()),
-                    x - ID_X_OFFSET,
-                    y,
-                    idPaint);
-            canvas.drawText(
-                    "right eye: " + String.format("%.2f", face.getRightEyeOpenProbability()),
-                    x + ID_X_OFFSET * 6,
-                    y,
-                    idPaint);
-        }
-
-        // Draws a bounding box around the face.
         float xOffset = scaleX(face.getBoundingBox().width() / 2.0f);
         float yOffset = scaleY(face.getBoundingBox().height() / 2.0f);
         float left = x - xOffset;
@@ -122,22 +71,5 @@ public class FaceGraphic extends GraphicOverlay.Graphic {
         float right = x + xOffset;
         float bottom = y + yOffset;
         canvas.drawRect(left, top, right, bottom, boxPaint);
-
-
-        // draw landmarks
-        drawLandmarkPosition(canvas, face, FirebaseVisionFaceLandmark.LEFT_EYE);
-        drawLandmarkPosition(canvas, face, FirebaseVisionFaceLandmark.RIGHT_EYE);
-
-    }
-
-    private void drawLandmarkPosition(Canvas canvas, FirebaseVisionFace face, int landmarkID) {
-        FirebaseVisionFaceLandmark landmark = face.getLandmark(landmarkID);
-        if (landmark != null) {
-            FirebaseVisionPoint point = landmark.getPosition();
-            canvas.drawCircle(
-                    translateX(point.getX()),
-                    translateY(point.getY()),
-                    10f, idPaint);
-        }
     }
 }

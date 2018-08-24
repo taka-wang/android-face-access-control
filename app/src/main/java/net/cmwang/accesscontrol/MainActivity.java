@@ -210,7 +210,8 @@ public class MainActivity extends AppCompatActivity {
 
             if (Bluetooth.IsSPPConnected()) {
                 // start new activity
-                Intent intent = new Intent(MainActivity.this, DoorControlActivity.class);
+                //Intent intent = new Intent(MainActivity.this, DoorControlActivity.class);
+                Intent intent = new Intent(MainActivity.this, LivePreviewActivity.class);
                 intent.putExtra(EXTRA_DOOR_NUMBER, this.mDoorNumber);
                 intent.putExtra(EXTRA_SERVER_ADDRESS, this.mServerAddress);
                 startActivity(intent);
