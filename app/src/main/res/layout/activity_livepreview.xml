@@ -11,14 +11,20 @@
 
     <io.fotoapparat.view.CameraView
         android:id="@+id/cameraView"
-        android:keepScreenOn="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        android:keepScreenOn="true" />
 
     <net.cmwang.vision.GraphicOverlay
         android:id="@+id/overlayView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </net.cmwang.vision.GraphicOverlay>
+        android:layout_height="match_parent"></net.cmwang.vision.GraphicOverlay>
+
+    <Button
+        android:id="@+id/test"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:text="Switch" />
 
 </FrameLayout>

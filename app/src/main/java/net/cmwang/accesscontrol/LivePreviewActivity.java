@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -17,6 +18,7 @@ import net.cmwang.vision.GraphicOverlay;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import io.fotoapparat.view.CameraView;
 
 public class LivePreviewActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
@@ -104,6 +106,23 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
         // super.onBackPressed(); commented this line in order to disable back press
         //Write your code here
         Toast.makeText(getApplicationContext(), "Back press disabled!", Toast.LENGTH_SHORT).show();
+    }
+
+    @OnClick(R.id.test)
+    protected void onStartClick(View view) {
+        Log.d(TAG, "click");
+        if (isFaceDetecting) {
+            isFaceDetecting = false;
+        } else {
+            isFaceDetecting = true;
+        }
+        // after camera source
+        if (isFaceDetecting) {
+            cameraSource.setDefaultProcessor("face");
+        } else {
+            cameraSource.setDefaultProcessor("qrcode");
+        }
+        switchActionBar();
     }
 
 }
