@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.doorNumberWrapper) TextInputLayout doorNumberWrapper;
     @BindView(R.id.serverAddressWrapper) TextInputLayout serverAddressWrapper;
     @BindView(R.id.devices_list_view) ListView deviceListView;
+
     @BindString(R.string.bluetooth_not_available_msg) String noBluetoothMessage;
     @BindString(R.string.empty_door_number_msg) String noDoorNumberMessage;
     @BindString(R.string.empty_server_address_msg) String noServerAddressMessage;
@@ -63,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
         serverAddressWrapper.getEditText().setText(
                 prefs.getString(EXTRA_SERVER_ADDRESS,
                         serverAddressWrapper.getEditText().getText().toString().trim()));
-
 
         // get runtime permissions
         new PermissionDelegate(this).getPermissions();
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "MAC: " + macAddressText + " Door: " + doorNumberText + " Server: " + serverAddressText);
 
         // async connect
-        new connectTask(macAddressText, doorNumberText, serverAddressText).execute();
+        new connectToBluetoothTask(macAddressText, doorNumberText, serverAddressText).execute();
     }
 
     @Override
@@ -180,13 +180,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Async connect to remote bluetooth device */
-    private class connectTask extends AsyncTask<Void, Void, Void> {
+    private class connectToBluetoothTask extends AsyncTask<Void, Void, Void> {
         private ProgressDialog mProgress;
         private String mMacAddress;
         private String mDoorNumber;
         private String mServerAddress;
 
-        public connectTask(String address, String doorNumber, String serverAddress) {
+        public connectToBluetoothTask(String address, String doorNumber, String serverAddress) {
             super();
             this.mMacAddress = address;
             this.mDoorNumber = doorNumber;
@@ -210,6 +210,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (Bluetooth.IsSPPConnected()) {
                 // start new activity
+
                 //Intent intent = new Intent(MainActivity.this, DoorControlActivity.class);
                 Intent intent = new Intent(MainActivity.this, LivePreviewActivity.class);
                 intent.putExtra(EXTRA_DOOR_NUMBER, this.mDoorNumber);
@@ -221,5 +222,4 @@ public class MainActivity extends AppCompatActivity {
             this.mProgress.dismiss();
         }
     }
-
 }

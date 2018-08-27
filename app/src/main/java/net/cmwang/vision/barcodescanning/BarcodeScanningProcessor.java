@@ -57,8 +57,8 @@ public class BarcodeScanningProcessor extends VisionProcessorBase<List<FirebaseV
             graphicOverlay.add(barcodeGraphic);
 
             Log.d(TAG, "QR Code: " + barcode.getRawValue());
-            Intent intent = new Intent("newqrcode");
-            intent.putExtra("user_uuid", barcode.getRawValue());
+            Intent intent = new Intent(LivePreviewActivity.intentFilterNewUUID);
+            intent.putExtra(LivePreviewActivity.intentExtraUUID, barcode.getRawValue());
             LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext()).sendBroadcast(intent);
         }
     }

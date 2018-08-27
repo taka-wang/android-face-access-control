@@ -11,6 +11,7 @@ import android.support.v4.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.List;
 
+/* Runtime permission utility */
 public class PermissionDelegate {
     private static final int PERMISSION_REQUESTS = 1;
     private static Context context;

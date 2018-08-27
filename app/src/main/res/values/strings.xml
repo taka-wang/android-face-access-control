@@ -6,8 +6,6 @@
     <string name="extra_door_number">door_number</string>
     <string name="extra_server_address">server_address</string>
 
-    <string name="default_server_address">192.168.1.1</string>
-    <string name="default_door_number">1</string>
     <string name="paired_devices">Paired Devices</string>
     <string name="open_door">Open the Door</string>
 
@@ -21,5 +19,27 @@
     <string name="hint_door_number">Door Number</string>
     <string name="hint_server_address">Server Address</string>
 
+    <!-- Live activity -->
+
+    <string name="face_title">Face Recognition Access Control</string>
+    <string name="qrcode_title">QR Code Scanning Access Control</string>
+    <string name="disable_back_press">Back press disabled!</string>
+    <string name="user_not_found">User not found!</string>
+    <string name="welcome_msg">Hi, </string>
+
+    <!-- default values -->
+    <string name="default_server_address">192.168.1.1</string>
+    <string name="default_door_number">1</string>
+
+    <!-- HTTP POST -->
+    <string name="face_uri">face</string>
+    <string name="qrcode_uri">qrcode</string>
+    <string name="anonymous">Anonymous</string>
+    <!-- REQ -->
+    <string name="image_json_field">image</string>
+    <string name="door_json_field">door</string>
+    <string name="uuid_json_field">uuid</string>
+    <!-- RES -->
+    <string name="user_name_json_field">username</string>
 
 </resources>

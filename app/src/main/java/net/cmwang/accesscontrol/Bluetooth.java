@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
+/* Bluetooth SPP Utility */
 public class Bluetooth {
 
     private static final String TAG = "Bluetooth";

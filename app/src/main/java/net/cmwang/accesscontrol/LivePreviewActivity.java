@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -23,13 +24,17 @@ import net.cmwang.vision.VisionFrame;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 
+import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -37,15 +42,46 @@ import es.dmoral.toasty.Toasty;
 import io.fotoapparat.view.CameraView;
 
 public class LivePreviewActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+
     @BindView(R.id.cameraView) CameraView cameraView;
     @BindView(R.id.overlayView) GraphicOverlay overlayView;
     @BindView(R.id.toggleButton) FloatingActionButton floatButton;
+    @BindString(R.string.extra_door_number) String EXTRA_DOOR_NUMBER;
+    @BindString(R.string.extra_server_address) String EXTRA_SERVER_ADDRESS;
+
+    @BindString(R.string.face_uri) String faceURI; // REST URI
+    @BindString(R.string.qrcode_uri) String qrCodeURI; // REST URI
+    @BindString(R.string.user_name_json_field) String userNameJsonField; // response field
+    @BindString(R.string.image_json_field) String imageJsonField; // request field
+    @BindString(R.string.door_json_field) String doorJsonField; // request field
+    @BindString(R.string.uuid_json_field) String uuidJsonField; // request field
+
+    @BindString(R.string.face_title) String faceAppTitle; // activity title
+    @BindString(R.string.qrcode_title) String qrCodeAppTitle; // activity title
+    @BindString(R.string.disable_back_press) String disableBackPressMsg;
+    @BindString(R.string.user_not_found) String userNotFoundMsg;
+    @BindString(R.string.welcome_msg) String welcomeMsg;
+    @BindString(R.string.anonymous) String unknownUserName;
+
+    public static final String intentFilterNewFrame = "new_face_frame"; // broadcast filter
+    public static final String intentFilterNewUUID = "new_user_uuid"; // broadcast filter
+    public static final String intentExtraFrame = "face"; // broadcast payload
+    public static final String intentExtraUUID = "user_uuid"; // broadcast payload
+
+    public static String doorNumber; // user input
+    public static String serverURL; // user input
 
     private static final String TAG = "LivePreviewActivity";
     private static Context context;
-    protected CameraSource cameraSource;
-    private boolean isFaceDetecting = true;
+    private boolean isFaceMode = true; // current machine learning mode
+    private CameraSource cameraSource;
 
+    private final int toastFontSize = 24;
+    private final String toastFontType = "sans-serif-smallcaps";
+    private final int connectionTimeoutMS = 2000;
+    private final int delayMS = 2000;
+
+    /* get current application context */
     public static Context getAppContext() {
         return context;
     }
@@ -55,80 +91,104 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_livepreview);
 
-        context = this;
-        ButterKnife.bind(this); // Binds
-        Toasty.Config.getInstance().setTextSize(32).apply();
+        context = this; // set context
 
-        // get runtime permissions
-        new PermissionDelegate(this).getPermissions();
+        ButterKnife.bind(this); // Binds
+
+        setToastyStyle(); // change toasty style
+
+        new PermissionDelegate(this).getPermissions(); // get runtime permissions
 
         cameraSource = new CameraSource(getApplicationContext(), cameraView, overlayView);
 
-        // https://stackoverflow.com/questions/22395417/error-strictmodeandroidblockguardpolicy-onnetwork
+        /* StrictMode.ThreadPolicy.Builder */
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
-        // switch theme color and detector
-        //setVisionMode(isFaceDetecting);
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // register
-        LocalBroadcastManager.getInstance(this).registerReceiver(frameReceiver, new IntentFilter("newface"));
-        LocalBroadcastManager.getInstance(this).registerReceiver(qrcodeReceiver, new IntentFilter("newqrcode"));
 
-        //getAllExtras();
+        getAllExtras(); // get user inputs from the intent
+        registerAllBroadcast(); // register frame and qr code broadcasts
         cameraSource.start();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // unregister
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(frameReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(qrcodeReceiver);
 
+        unregisterAllBroadcast(); // unregister frame and qr code broadcasts
         cameraSource.stop();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //this.unregisterReceiver(broadcastReceiver);
+
         cameraSource.release();
     }
 
+    /* Disable back press key function */
     @Override
     public void onBackPressed() {
-        // super.onBackPressed(); commented this line in order to disable back press
-        Toasty.error(this, "Back press disabled!").show();
+        // super.onBackPressed(); /* commented this line in order to disable back press */
+        Toasty.error(this, disableBackPressMsg).show();
     }
 
+    /* Handle mode change button */
     @OnClick(R.id.toggleButton)
-    protected void onToggleClick(View view) {
-        if (isFaceDetecting) {
-            isFaceDetecting = false;
+    protected void onToggleClick(View v) {
+        if (isFaceMode) {
+            isFaceMode = false;
         } else {
-            isFaceDetecting = true;
+            isFaceMode = true;
         }
-        setVisionMode(isFaceDetecting);
+        setVisionMode(isFaceMode);
     }
 
-    protected void setVisionMode(boolean facedetection) {
+    /* change toasty default style */
+    private void setToastyStyle() {
+        Toasty.Config.getInstance()
+                .setTextSize(toastFontSize)
+                .setToastTypeface(Typeface.create(toastFontType, Typeface.NORMAL))
+                .apply();
+    }
+
+    /* get user inputs from the intent */
+    private void getAllExtras() {
+        Intent intent = getIntent();
+        doorNumber = intent.getStringExtra(EXTRA_DOOR_NUMBER);
+        serverURL = intent.getStringExtra(EXTRA_SERVER_ADDRESS);
+        Log.d(TAG, "door: " + doorNumber + ", address: " + serverURL);
+    }
+
+    /* register all broadcasts */
+    private void registerAllBroadcast() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(userUUIDReceiver, new IntentFilter(intentFilterNewUUID));
+        LocalBroadcastManager.getInstance(this).registerReceiver(frameReceiver, new IntentFilter(intentFilterNewFrame));
+    }
+
+    /* unregister all broadcasts */
+    private void unregisterAllBroadcast() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(frameReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(userUUIDReceiver);
+    }
+
+    /* change machine learning mode */
+    private void setVisionMode(boolean doFaceRecognition) {
         ActionBar bar = getSupportActionBar();
         int black = getColor(R.color.colorBlack);
         int red = getColor(R.color.colorRed);
 
-        if (facedetection) {
-            cameraSource.setDefaultProcessor("face");
+        if (doFaceRecognition) {
+            cameraSource.setDefaultProcessor(CameraSource.faceDetection);
             // floating button
             floatButton.setImageResource(R.drawable.ic_barcode_scan);
             floatButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorBlack));
             // action bar
-            bar.setTitle("Face Recognition");
+            bar.setTitle(faceAppTitle);
             bar.setBackgroundDrawable(new ColorDrawable(black));
             // status
             getWindow().setStatusBarColor(black);
@@ -136,12 +196,12 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
             getWindow().setNavigationBarColor(black);
 
         } else {
-            cameraSource.setDefaultProcessor("qrcode");
+            cameraSource.setDefaultProcessor(CameraSource.qrcodeScanning);
             // floating button
             floatButton.setImageResource(R.drawable.ic_face);
             floatButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorRed));
             // action bar
-            bar.setTitle("QR Code Scanning");
+            bar.setTitle(qrCodeAppTitle);
             bar.setBackgroundDrawable(new ColorDrawable(red));
             // status
             getWindow().setStatusBarColor(red);
@@ -150,134 +210,35 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
         }
     }
 
-    public BroadcastReceiver qrcodeReceiver = new BroadcastReceiver() {
-
+    /* qr code scanning broadcast */
+    public BroadcastReceiver userUUIDReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Got new QR Code");
-
             // throttle broadcast rate: unregister
-            LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext())
-                    .unregisterReceiver(qrcodeReceiver);
-            // stop camera stream
-            cameraSource.stop();
-            // get frame from intent
-            String action = intent.getAction();
-            String userUUID = intent.getStringExtra("user_uuid");
+            LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext()).unregisterReceiver(userUUIDReceiver);
 
-            Log.d(TAG, "User UUID: " + userUUID);
-
-            // check
-            try {
-                URL url = new URL("http://192.168.41.118:5000/qrcode");
-
-                // 1. create HttpURLConnection
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-
-                // 2. build JSON object
-                JSONObject jsonObject = buidJsonObject();
-
-                // 3. add JSON content to POST request body
-                setPostRequestContent(conn, jsonObject);
-
-                // 4. make POST request to the given URL
-                conn.connect();
-
-                // 5. return response message
-                int ret = conn.getResponseCode();
-                String result =  conn.getResponseMessage() + "";
-                // 6. disconnect
-                conn.disconnect();
-
-                if (ret == 200) {
-                    // open the door
-                    Bluetooth.OpenDoor();
-                    Toasty.success(LivePreviewActivity.getAppContext(), "Welcome, Jamie Wang", Toast.LENGTH_SHORT, true).show();
-                } else {
-                    Toasty.error(LivePreviewActivity.getAppContext(), "User not found!", Toast.LENGTH_SHORT, true).show();
-                }
-
-                Log.d(TAG, "POST :" + ret + " msg: " + result);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
-            // delay
-            new android.os.Handler().postDelayed(
-                    new Runnable() {
-                        public void run() {
-                            // throttle broadcast rate: register
-                            LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext())
-                                    .registerReceiver(qrcodeReceiver, new IntentFilter("newqrcode"));
-
-                            // resume camera stream
-                            cameraSource.start();
-                        }
-                    },
-                    2000);
-        }
-    };
-
-    public BroadcastReceiver frameReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Got new face broadcase");
-
-            // throttle broadcast rate: unregister
-            LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext())
-                    .unregisterReceiver(frameReceiver);
             // stop camera stream
             cameraSource.stop();
 
-            // get frame from intent
-            String action = intent.getAction();
-            VisionFrame frame = intent.getParcelableExtra("face");
+            // get uuid from intent
+            String userUUID = intent.getStringExtra(intentExtraUUID);
+            Log.d(TAG, "Got new UUID: " + userUUID);
 
-            // check
+            // prepare POST content
+            JSONObject jsonObject = new JSONObject();
             try {
-                URL url = new URL("http://192.168.41.118:5000/qrcode");
-
-                // 1. create HttpURLConnection
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-
-                // 2. build JSON object
-                JSONObject jsonObject = buidJsonObject();
-
-                // 3. add JSON content to POST request body
-                setPostRequestContent(conn, jsonObject);
-
-                // 4. make POST request to the given URL
-                conn.connect();
-
-                // 5. return response message
-                int ret = conn.getResponseCode();
-                String result =  conn.getResponseMessage() + "";
-                // 6. disconnect
-                conn.disconnect();
-
-                if (ret == 200) {
-                    // open the door
-                    Bluetooth.OpenDoor();
-                    Toasty.success(LivePreviewActivity.getAppContext(), "Welcome, Jamie Wang", Toast.LENGTH_SHORT, true).show();
-                } else {
-                    Toasty.error(LivePreviewActivity.getAppContext(), "User not found!", Toast.LENGTH_SHORT, true).show();
-                }
-
-                Log.d(TAG, "POST :" + ret + " msg: " + result);
-            } catch (IOException e) {
-                e.printStackTrace();
+                jsonObject.accumulate(uuidJsonField, userUUID);
+                jsonObject.accumulate(doorJsonField, doorNumber);
             } catch (JSONException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Prepare POST content error: " + e);
+                return;
             }
 
-            // action
+            // TODO: refactor
+            String url = "http://" + serverURL + "/" + qrCodeURI;
+
+            // Send HTTP POST request
+            HttpPost(url, jsonObject);
 
             // delay
             new android.os.Handler().postDelayed(
@@ -285,21 +246,136 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
                     public void run() {
                         // throttle broadcast rate: register
                         LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext())
-                                .registerReceiver(frameReceiver, new IntentFilter("newface"));
+                                .registerReceiver(userUUIDReceiver, new IntentFilter(intentFilterNewUUID));
 
                         // resume camera stream
                         cameraSource.start();
                     }
-                },
-                2000);
+                }, delayMS
+            );
         }
-
-
     };
 
-    private void setPostRequestContent(HttpURLConnection conn,
-                                       JSONObject jsonObject) throws IOException {
+    /* face detection broadcast */
+    public BroadcastReceiver frameReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Got new face broadcast");
 
+            // throttle broadcast rate: unregister
+            LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext())
+                    .unregisterReceiver(frameReceiver);
+
+            // get frame from intent
+            VisionFrame frame = intent.getParcelableExtra(intentExtraFrame);
+
+            // convert bitmap to base64
+            String base64String = frame.toBase64();
+
+            /* trick! stop camera after conversion for better user experience
+             * stop camera stream
+             */
+            cameraSource.stop();
+
+            // prepare POST content
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.accumulate(imageJsonField, base64String);
+                jsonObject.accumulate(doorJsonField, doorNumber);
+            } catch (JSONException e) {
+                Log.e(TAG, "Prepare POST content error: " + e);
+                return;
+            }
+
+            // TODO: refactor
+            String url = "http://" + serverURL + "/" + faceURI;
+
+            // Send HTTP POST request
+            HttpPost(url, jsonObject);
+
+            // delay
+            new android.os.Handler().postDelayed(
+                new Runnable() {
+                    public void run() {
+                        // throttle broadcast rate: register
+                        LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext())
+                                .registerReceiver(frameReceiver, new IntentFilter(intentFilterNewFrame));
+
+                        // resume camera stream
+                        cameraSource.start();
+                    }
+                }, delayMS
+            );
+        }
+    };
+
+    /* Send HTTP POST with JSON object to remote server */
+    public void HttpPost(String uri, JSONObject requestObject) {
+        URL url;
+        try {
+            url = new URL(uri);
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "Illegal URL");
+            return;
+        }
+
+        HttpURLConnection conn = null;
+
+        try {
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setUseCaches(false);
+            conn.setConnectTimeout(connectionTimeoutMS);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            setPostRequestContent(conn, requestObject);
+
+            conn.connect();
+
+            // handle the response
+            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                // show error message
+                Toasty.error(LivePreviewActivity.getAppContext(), userNotFoundMsg, Toast.LENGTH_SHORT, true).show();
+            } else {
+                // parse JSON response
+                JSONObject jsonObj = new JSONObject(getPostResponseString(conn));
+                String username;
+                if (jsonObj.has(userNameJsonField)) {
+                    username = jsonObj.getString(userNameJsonField);
+                } else {
+                    // cannot obtain username from the backend?!
+                    username = unknownUserName;
+                }
+
+                // open the door and show success message
+                Bluetooth.OpenDoor();
+                Toasty.success(LivePreviewActivity.getAppContext(), welcomeMsg + " " + username, Toast.LENGTH_SHORT, true).show();
+            }
+        } catch (Exception e) {
+            // show error message and terminate the activity
+            Toasty.error(LivePreviewActivity.getAppContext(), e.toString(), Toast.LENGTH_SHORT, true).show();
+            LivePreviewActivity.this.finish();
+        } finally {
+            // disconnect the HTTP POST
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
+    }
+
+    /* get HTTP JSON response */
+    private String getPostResponseString(HttpURLConnection conn) throws IOException {
+        StringBuffer response = new StringBuffer();
+        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        String inputLine;
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        return response.toString();
+    }
+
+    /* set HTTP JSON POST object */
+    private void setPostRequestContent(HttpURLConnection conn, JSONObject jsonObject) throws IOException {
         OutputStream os = conn.getOutputStream();
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
         writer.write(jsonObject.toString());
@@ -308,41 +384,4 @@ public class LivePreviewActivity extends AppCompatActivity implements ActivityCo
         writer.close();
         os.close();
     }
-
-    public String HttpPost(String myUrl) throws IOException, JSONException {
-        String result = "";
-
-        URL url = new URL(myUrl);
-
-        // 1. create HttpURLConnection
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-
-        // 2. build JSON object
-        JSONObject jsonObject = buidJsonObject();
-
-        // 3. add JSON content to POST request body
-        setPostRequestContent(conn, jsonObject);
-
-        // 4. make POST request to the given URL
-        conn.connect();
-
-        //int ret = conn.getResponseCode();
-
-        // 5. return response message
-        return conn.getResponseMessage() + "";
-
-    }
-
-    private JSONObject buidJsonObject() throws JSONException {
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.accumulate("name", "jamie");
-        jsonObject.accumulate("country",  "taiwan");
-        jsonObject.accumulate("twitter",  "new taipei");
-
-        return jsonObject;
-    }
-
 }

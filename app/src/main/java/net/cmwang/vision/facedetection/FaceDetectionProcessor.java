@@ -45,9 +45,6 @@ public class FaceDetectionProcessor extends VisionProcessorBase<List<FirebaseVis
                         .build();
 
         faceDetector = FirebaseVision.getInstance().getVisionFaceDetector(options);
-
-        // create render script for nv21 conversion
-        rs = RenderScript.create(LivePreviewActivity.getAppContext());
     }
 
     @Override
@@ -82,8 +79,8 @@ public class FaceDetectionProcessor extends VisionProcessorBase<List<FirebaseVis
                     face.getLeftEyeOpenProbability() > minEyeOpenProbability &&
                     (face.getHeadEulerAngleY() < maxEulerAngleY && face.getHeadEulerAngleY() > minEulerAngleY )) {
 
-                Intent intent = new Intent("newface");
-                intent.putExtra("face", frame);
+                Intent intent = new Intent(LivePreviewActivity.intentFilterNewFrame);
+                intent.putExtra(LivePreviewActivity.intentExtraFrame, frame);
                 LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext()).sendBroadcast(intent);
 
                 // Async Save to SD card

@@ -16,7 +16,7 @@ import io.fotoapparat.view.CameraView;
 
 public class CameraSource {
     private static final String TAG = "CameraSource";
-    private static  String defaultProcessor = "face";
+    private static  String defaultProcessor = "face_detection_processor";
     private static int cameraFacing = GraphicOverlay.LENS_FACING_FRONT;
 
     private final Object processorLock = new Object();
@@ -25,6 +25,9 @@ public class CameraSource {
     private static GraphicOverlay overlayView;
     private static Fotoapparat fotoapparat;
     private static Context context;
+
+    public static final String faceDetection = "face_detection_processor";
+    public static final String qrcodeScanning = "qrcode_scanning_processor";
 
     private Fotoapparat createFotoApparat(Context ctx) {
         return Fotoapparat
@@ -99,10 +102,10 @@ public class CameraSource {
             }
 
             switch (model) {
-                case "face":
+                case faceDetection:
                     processor = new FaceDetectionProcessor();
                     break;
-                case "qrcode":
+                case qrcodeScanning:
                     processor = new BarcodeScanningProcessor();
                     break;
                 default:
