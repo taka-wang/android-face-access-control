@@ -1,10 +1,12 @@
 package net.cmwang.vision;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 
-public class VisionFrame {
+public class VisionFrame implements Parcelable {
 
     private static final String TAG = "VisionFrame";
     private final int width;
@@ -39,6 +41,32 @@ public class VisionFrame {
         this.height = height;
         this.rotation = rotation;
         this.facing = facing;
+    }
+
+    public VisionFrame(Parcel parcel) {
+        this.data = new byte[parcel.readInt()];
+        parcel.readByteArray(data);
+
+        this.width = parcel.readInt();
+        this.height = parcel.readInt();
+        this.rotation = parcel.readInt();
+        this.facing = parcel.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+        return hashCode();
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(data.length);
+        parcel.writeByteArray(data);
+
+        parcel.writeInt(width);
+        parcel.writeInt(height);
+        parcel.writeInt(rotation);
+        parcel.writeInt(facing);
     }
 
     public static class Builder {

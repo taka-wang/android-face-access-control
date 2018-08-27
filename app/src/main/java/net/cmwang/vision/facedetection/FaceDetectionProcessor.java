@@ -1,6 +1,8 @@
 package net.cmwang.vision.facedetection;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v8.renderscript.RenderScript;
 import android.util.Log;
 
@@ -80,11 +82,15 @@ public class FaceDetectionProcessor extends VisionProcessorBase<List<FirebaseVis
                     face.getLeftEyeOpenProbability() > minEyeOpenProbability &&
                     (face.getHeadEulerAngleY() < maxEulerAngleY && face.getHeadEulerAngleY() > minEulerAngleY )) {
 
+                Intent intent = new Intent("newface");
+                intent.putExtra("face", frame);
+                LocalBroadcastManager.getInstance(LivePreviewActivity.getAppContext()).sendBroadcast(intent);
+
                 // Async Save to SD card
                 //new MyTask(frame).execute();
 
                 // update overlay
-                faceGraphic.updateFace(face, frame.getCameraFacing());
+                //faceGraphic.updateFace(face, frame.getCameraFacing());
             }
         }
     }

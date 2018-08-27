@@ -20,11 +20,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"></net.cmwang.vision.GraphicOverlay>
 
-    <Button
-        android:id="@+id/test"
-        android:layout_width="match_parent"
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/toggleButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:text="Switch" />
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/ic_barcode_scan"
+        app:backgroundTint="#000" />
 
 </FrameLayout>

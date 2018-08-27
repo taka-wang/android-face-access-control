@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Access Control</string>
+    <string name="app_name">Face Recognition</string>
     <string name="action_settings">Settings</string>
 
     <!-- main activity -->
