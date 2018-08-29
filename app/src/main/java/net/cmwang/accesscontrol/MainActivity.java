@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayAdapter adapter;
     private SharedPreferences prefs;
     private ToastUtils toast;
+    private static int clickCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,9 +85,23 @@ public class MainActivity extends AppCompatActivity {
         Bluetooth.Disconnect(); // disconnect Bluetooth connection
     }
 
+    private void maintenanceCheck() {
+        clickCount++;
+        if (clickCount == 5) {
+            toast.shortMSG("Almost there! " + (9-clickCount) + " more!");
+        }
+        if (clickCount == 9) {
+            //clickCount = 0;
+            doorNumberWrapper.setVisibility(View.VISIBLE);
+            serverAddressWrapper.setVisibility(View.VISIBLE);
+        }
+    }
+
     /* Handle get paired device button */
     @OnClick(R.id.device_paired)
     protected void onGetPairedDevices(View view) {
+        maintenanceCheck();
+
         ArrayList pairedDevicesList = new ArrayList();
         Set<BluetoothDevice> pairedDevicesSet = Bluetooth.GetPairedDevices();
 
